@@ -1,5 +1,5 @@
-# acoustic-gnn-detection
-> Developed at the **Institute of Science Tokyo**, Japan
+# occlunet-unified
 
-Occluded Object Detection and Distance Estimation via Graph Neural Networks on Acoustic Impulse Responses
+> Developed at the Institute of Science Tokyo, Japan
 
+Unified Neural Audio-Based Framework for Occluded Object Detection, Distance Estimation and Material Classification
