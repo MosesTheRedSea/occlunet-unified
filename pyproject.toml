@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "acoustic-object-detection"
+version = "0.1.0"
+description = "occluded acoustic object detection"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [
+    { name = "Moses Adewolu", email = "MosesOluwatobiAdewolu@gmail.com" }
+]
+
+dependencies = [
+    "numpy",
+    "scipy",
+    "matplotlib",
+    "h5py",
+    "pillow",
+    "pyyaml",
+    "tqdm",
+    "pandas",
+    "torch",
+    "torchvision",
+    "torchaudio",
+    "scikit-learn",
+    "sounddevice",
+    "soundfile",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "black",
+    "flake8",
+    "ipython"
+]
+
+[tool.setuptools]
+package-dir = { "" = "/home/moses/Moses/Research/Artificial_Intelligence/Deep-Learning" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+
+

@@ -1,0 +1,3 @@
+global:
+  BASE: "/home/moses/Moses/Research/Current/Institute of Science Tokyo/acoustic-robotics"
+  PROJECT: "Multi-Task Acoustic Perception for Occluded Object Detection, Distance Estimation, and Material Classification"
