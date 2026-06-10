@@ -122,7 +122,6 @@ def plot_loss_curve(train_losses, val_losses, save_path=None):
     else:
         plt.show()
 
-
 def plot_accuracy_curve(accuracies, labels=None, save_path=None):
     plt.figure()
     if isinstance(accuracies[0], (list, np.ndarray)):
@@ -142,7 +141,6 @@ def plot_accuracy_curve(accuracies, labels=None, save_path=None):
     else:
         plt.show()
 
-
 def plot_rmse_curve(rmse_dict, save_path=None):
     plt.figure()
     for label, values in rmse_dict.items():
@@ -158,7 +156,6 @@ def plot_rmse_curve(rmse_dict, save_path=None):
         plt.close()
     else:
         plt.show()
-
 
 def plot_confusion_matrix(y_true, y_pred, labels, title, save_path=None):
     cm = confusion_matrix(y_true, y_pred, labels=range(len(labels)))

@@ -12,44 +12,6 @@ from datetime import datetime
 
 def record_speaker_data(dataset_directory, room_directory, excitation_path, occlusion_type, occlusion_distance, occluded_type, occluded_distance, base_filename, channels=16, repeat=8, sleep_duration=3):
 
-    # folder_name = input("Enter a name for this recording session (f older name): ").strip()
-
-    # I could try updating this to args later it will be much easier than just submitting multiple input files
-
-    # # acoustic-robotics/IST-AUDN20/audio
-    # dataset_directory = input("Enter the dataset core directory ")
-    # # /home/moses/Moses/Research/Current/Institute of Science Tokyo/acoustic-robotics/IST-AUDN20/audio
-    # # room_A - sets room type room_test & room_A are exact same. if envionrment is different use different letter
-    # room_directory = input("Enter the room type ") 
-    # # room_test
-    # excitation_path = input("Enter the path to excitation wav file ").strip()
-    # # /home/moses/Moses/Research/Current/Institute of Science Tokyo/acoustic-robotics/Multi-Task Acoustic Perception for Occluded Object Detection, Distance Estimation, and Material Classification/excitation.wav
-    # if not os.path.isfile(excitation_path):
-    #     print("Error: The provided excitation file does not exist.")
-    #     return
-    # occlusion_type = input("Enter Occlusion type ").strip()
-    # # Distance of the microphone/speaker setup to occlusion
-    # # wood+foam
-    # occlusion_distance = input("Enter the Occlusion distance ").strip() 
-    # # 1.6
-    # occluded_type = input("Enter Occluded Object type ").strip()
-    # # Distance of the Occluded Object To the Occlusion
-    # # speaker
-    # occluded_distance = input("Enter Occluded Object Distance  ").strip() 
-    # # .5 
-    # # Sub directory gives use the distance of speaker to occlusion _ distance of occluded object to occlusion
-    # distance_dir = f"{occlusion_distance}_{occluded_distance}".strip()
-    # # Make sure directorys exist for room_type, occluded_object_type, occlusion_type and the distances exist
-
-    # # Makes the directory if it doesn't exist
-    # if not os.path.isdir(f"{dataset_directory}/{room_directory}/{occlusion_type}/{occluded_type}/{distance_dir}"):
-    #     Path(f"{dataset_directory}/{room_directory}/{occlusion_type}/{occluded_type}/{distance_dir}").mkdir(parents=True, exist_ok=True)
-    
-    # base_filename = input("Enter a base name for the output recorded files (without extension): ").strip()
-    
-    # Subdirectory gives:
-    # speaker_to_occlusion_distance + occluded_object_distance
-
     distance_dir = f"{occlusion_distance}-{occluded_distance}".strip()
 
     target_directory = (
