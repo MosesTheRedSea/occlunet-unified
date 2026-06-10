@@ -1,6 +1,6 @@
 global:
-  BASE: "/home/moses/Moses/Research/Current/Institute of Science Tokyo/acoustic-robotics"
-  PROJECT: "Multi-Task Acoustic Perception for Occluded Object Detection, Distance Estimation, and Material Classification"
+  BASE: "/home/3/um07293/research"
+  PROJECT: "/home/3/um07293/research/occlunet-unified"
 
 train:
   loss: 1e-4

@@ -57,7 +57,7 @@ class OcculDataset(Dataset):
 
         t_dist = torch.tensor(meta["occlusion_distance"]).float()
 
-        mat_key = OBJECT_TO_MATERIAL[meta["object_type"]]
+        mat_key = self.obj_to_mat[meta["object_type"]]
         t_mat   = torch.tensor(self.mat_mapping[mat_key]).long()
 
         return ir_tensor, spec_tensor, t_det, t_dist, t_mat
@@ -103,7 +103,6 @@ def run_evaluation(model, loader, device, det_classes, mat_classes, save_dir):
         for ir, spec, t_det, t_dist, t_mat in loader:
             ir, spec = ir.to(device), spec.to(device)
             p_det, p_dist, p_mat = model(ir, spec)
-
             all_det_p.extend(torch.argmax(p_det, dim=1).cpu().numpy())
             all_det_t.extend(t_det.numpy())
             all_mat_p.extend(torch.argmax(p_mat, dim=1).cpu().numpy())
@@ -111,36 +110,56 @@ def run_evaluation(model, loader, device, det_classes, mat_classes, save_dir):
             all_dist_p.extend(p_dist.squeeze().cpu().numpy())
             all_dist_t.extend(t_dist.numpy())
 
-    acc_det = np.mean(np.array(all_det_p) == np.array(all_det_t)) * 100
+    acc_det  = np.mean(np.array(all_det_p) == np.array(all_det_t)) * 100
     rmse_dist = np.sqrt(mean_squared_error(all_dist_t, all_dist_p))
-    mae_dist = mean_absolute_error(all_dist_t, all_dist_p)
-    
-    print(f"\nDetection Accuracy: {acc_det:.2f}%")
-    print(f"Distance RMSE: {rmse_dist:.2f} cm")
-    print(f"Distance MAE:  {mae_dist:.2f} cm")
+    mae_dist  = mean_absolute_error(all_dist_t, all_dist_p)
 
-    fig, axes = plt.subplots(1, 3, figsize=(20, 6))
-    
+    print(f"\nDetection Accuracy : {acc_det:.2f}%")
+    print(f"Distance RMSE      : {rmse_dist:.2f} m")
+    print(f"Distance MAE       : {mae_dist:.2f} m")
+
+    # --- Detection confusion matrix ---
+    fig, ax = plt.subplots(figsize=(8, 6))
     cm_det = confusion_matrix(all_det_t, all_det_p, normalize='true')
-    sns.heatmap(cm_det, annot=True, fmt='.2f', ax=axes[0], xticklabels=det_classes, yticklabels=det_classes)
-    axes[0].set_title("Detection Accuracy")
-
-    cm_mat = confusion_matrix(all_mat_t, all_mat_p, normalize='true')
-    sns.heatmap(cm_mat, annot=True, fmt='.2f', ax=axes[1], xticklabels=mat_classes, yticklabels=mat_classes)
-    axes[1].set_title("Material Accuracy")
-
-    axes[2].scatter(all_dist_t, all_dist_p, alpha=0.5, color='teal')
-    axes[2].plot([min(all_dist_t), max(all_dist_t)], [min(all_dist_t), max(all_dist_t)], 'r--')
-    axes[2].set_title(f"Distance RMSE: {rmse_dist:.2f}cm")
-    
+    sns.heatmap(cm_det, annot=True, fmt='.2f', ax=ax,
+                xticklabels=det_classes, yticklabels=det_classes)
+    ax.set_title("Detection Confusion Matrix")
+    ax.set_xlabel("Predicted")
+    ax.set_ylabel("True")
     plt.tight_layout()
-    plt.savefig(save_dir / "results.png")
-    plt.show()
+    plt.savefig(save_dir / "detection_cm.png", dpi=150)
+    plt.close()
 
+    # --- Material confusion matrix ---
+    fig, ax = plt.subplots(figsize=(8, 6))
+    cm_mat = confusion_matrix(all_mat_t, all_mat_p, normalize='true')
+    sns.heatmap(cm_mat, annot=True, fmt='.2f', ax=ax,
+                xticklabels=mat_classes, yticklabels=mat_classes)
+    ax.set_title("Material Confusion Matrix")
+    ax.set_xlabel("Predicted")
+    ax.set_ylabel("True")
+    plt.tight_layout()
+    plt.savefig(save_dir / "material_cm.png", dpi=150)
+    plt.close()
+
+    # --- Distance scatter ---
+    fig, ax = plt.subplots(figsize=(8, 6))
+    ax.scatter(all_dist_t, all_dist_p, alpha=0.5, color='teal')
+    ax.plot([min(all_dist_t), max(all_dist_t)],
+            [min(all_dist_t), max(all_dist_t)], 'r--', label='Perfect prediction')
+    ax.set_xlabel("True distance (m)")
+    ax.set_ylabel("Predicted distance (m)")
+    ax.set_title(f"Distance  RMSE={rmse_dist:.3f}m  MAE={mae_dist:.3f}m")
+    ax.legend()
+    plt.tight_layout()
+    plt.savefig(save_dir / "distance_scatter.png", dpi=150)
+    plt.close()
+
+    # --- Metrics text ---
     with open(save_dir / "results.txt", "w") as f:
-        f.write(f"Detection Accuracy: {acc_det:.2f}%\n")
-        f.write(f"Distance RMSE: {rmse_dist:.2f} cm\n")
-        f.write(f"Distance MAE: {mae_dist:.2f} cm\n")
+        f.write(f"Detection Accuracy : {acc_det:.2f}%\n")
+        f.write(f"Distance RMSE      : {rmse_dist:.2f} m\n")
+        f.write(f"Distance MAE       : {mae_dist:.2f} m\n")
 
 def epoch_metrics(model, loader, device):
     model.eval()
@@ -234,8 +253,8 @@ if __name__ == '__main__':
     print(det_map)
     print(mat_map)
 
-    processed_root = Path("/home/moses/Moses/Research/Current/Institute of Science Tokyo/acoustic-robotics/Multi-Task Acoustic Perception for Occluded Object Detection, Distance Estimation, and Material Classification/data/processed/")
-    augmented_root = Path("/home/moses/Moses/Research/Current/Institute of Science Tokyo/acoustic-robotics/Multi-Task Acoustic Perception for Occluded Object Detection, Distance Estimation, and Material Classification/data/augmented/")
+    processed_root = Path("./data/processed/")
+    augmented_root = Path("./data/augmented/")
 
     check = set()
 
@@ -345,17 +364,11 @@ if __name__ == '__main__':
     ORTHO_LAMBDA = 0.01
 
     MODEL_DIR = (
-        "/home/moses/Moses/Research/Current/"
-        "Institute of Science Tokyo/acoustic-robotics/"
-        "Multi-Task Acoustic Perception for Occluded Object Detection, "
-        "Distance Estimation, and Material Classification/models"
+        "./models"
     )
 
     RESULT_DIR = (
-        "/home/moses/Moses/Research/Current/"
-        "Institute of Science Tokyo/acoustic-robotics/"
-        "Multi-Task Acoustic Perception for Occluded Object Detection, "
-        "Distance Estimation, and Material Classification/results"
+        "./results"
     )
 
     model_run_dir = get_next_run_folder(MODEL_DIR)
@@ -382,12 +395,15 @@ if __name__ == '__main__':
         optimizer, T_max=EPOCHS, eta_min=1e-5
     )
 
-    best_val_loss   = float('inf')
+    best_score = -float("inf")
     early_stop_cnt  = 0
 
     for epoch in range(EPOCHS):
         model.train()
         train_losses = []
+        train_det_losses = []
+        train_dist_losses = []
+        train_mat_losses = []
         
         for ir, spec, t_det, t_dist, t_mat in train_loader:
 
@@ -398,7 +414,7 @@ if __name__ == '__main__':
             optimizer.zero_grad()
             p_det, p_dist, p_mat = model(ir, spec)
 
-            loss, _ = criterion(
+            loss, (det_loss, dist_loss, mat_loss) = criterion(
                 p_det, t_det,
                 p_dist, t_dist,
                 p_mat, t_mat,
@@ -411,6 +427,9 @@ if __name__ == '__main__':
 
             optimizer.step()
             train_losses.append(loss.item())
+            train_det_losses.append(det_loss)
+            train_dist_losses.append(dist_loss)
+            train_mat_losses.append(mat_loss)
 
         model.eval()
         val_losses = []
@@ -422,29 +441,64 @@ if __name__ == '__main__':
                     t_det.to(DEVICE), t_dist.to(DEVICE), t_mat.to(DEVICE)
                 )
                 p_det, p_dist, p_mat = model(ir, spec)
-                v_loss, _ = criterion(p_det, t_det, p_dist, t_dist, p_mat, t_mat)
+                v_loss, _ = criterion(
+                    p_det,
+                    t_det,
+                    p_dist,
+                    t_dist,
+                    p_mat,
+                    t_mat,
+                    ortho_loss=model.orthogonality_loss
+                )
                 val_losses.append(v_loss.item())
  
         avg_train = np.mean(train_losses)
-        avg_val   = np.mean(val_losses)
+        avg_val = np.mean(val_losses)
+        avg_train_det = np.mean(train_det_losses)
+        avg_train_dist = np.mean(train_dist_losses)
+        avg_train_mat = np.mean(train_mat_losses)
+
         det_acc, mat_acc, rmse, mae = epoch_metrics(model, val_loader, DEVICE)
+
+        sigmas = (
+            torch.exp(0.5 * criterion.log_vars)
+            .detach()
+            .cpu()
+            .numpy()
+        )
 
         print(
             f"Epoch [{epoch+1:3d}/{EPOCHS}] "
             f"Train: {avg_train:.4f} | Val: {avg_val:.4f} | "
             f"Det: {det_acc:.1f}% | Mat: {mat_acc:.1f}% | "
             f"RMSE: {rmse:.3f}m | MAE: {mae:.3f}m | "
+            f"DetLoss: {avg_train_det:.3f} | "
+            f"DistLoss: {avg_train_dist:.3f} | "
+            f"MatLoss: {avg_train_mat:.3f} | "
+            f"σ=[{sigmas[0]:.2f}, {sigmas[1]:.2f}, {sigmas[2]:.2f}] | "
             f"LR: {scheduler.get_last_lr()[0]:.2e}"
         )
 
         scheduler.step()
  
-        if avg_val < best_val_loss:
-            best_val_loss  = avg_val
+        score = (
+            0.4 * (det_acc / 100.0) +
+            0.4 * (mat_acc / 100.0) -
+            0.2 * rmse
+        )
+
+        if score > best_score:
+            best_score = score
             early_stop_cnt = 0
-            torch.save(model.state_dict(), model_run_dir / "best_model.pth")
+
+            torch.save(
+                model.state_dict(),
+                model_run_dir / "best_model.pth"
+            )
+ 
         else:
             early_stop_cnt += 1
+
             if early_stop_cnt >= PATIENCE:
                 print(f"Early stopping at epoch {epoch+1}")
                 break

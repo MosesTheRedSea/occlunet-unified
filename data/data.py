@@ -168,7 +168,7 @@ if __name__ == "__main__":
     BASE = Path(cfg["global"]["BASE"])
     PROJECT = BASE / cfg["global"]["PROJECT"]
     # AUDIO_DATA_ROOT = BASE / "IST-AUDN20/audio"
-    AUDIO_DATA_ROOT = "/home/moses/Moses/Research/Current/Institute of Science Tokyo/IST-AUDN20/audio"
+    AUDIO_DATA_ROOT = "/home/3/um07293/data/audio"
     EXCITATION_PATH = PROJECT / "excitation.wav"
     SAVE_ROOT = Path(__file__).parent / "processed"
 
