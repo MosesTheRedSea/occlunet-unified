@@ -4,3 +4,4 @@ data/augmented/
 data/raw/
 
 example.txt
+*.pth
